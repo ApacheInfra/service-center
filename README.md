@@ -134,10 +134,12 @@ This will bring up Service Center listening on ip/port 127.0.0.1:30100 for servi
 
 [github-release]: https://github.com/servicecomb/service-center/releases/
 ### Build docker image
+
 ```sh
 sudo bash scripts/docker/build-image/build.sh
 ```
 it builds a image servicecomb/service-center
+
 ### Running Frontend using the Release
 
 You can download our latest release from ServiceComb Website and then untar it and run start-frontend.sh/start-frontend.bat.

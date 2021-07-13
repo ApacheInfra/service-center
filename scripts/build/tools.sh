@@ -198,10 +198,7 @@ docker_builder_pattern() {
     set -e
 
     cd $dockerfile_dir
-    cp -pf Dockerfile.build Dockerfile
-    sed -i "s|{{RELEASE}}|${RELEASE}|g" Dockerfile
-    sed -i "s|{{BUILD}}|${BUILD}|g" Dockerfile
-    docker build -t $builder_name .
+    docker build --build-arg RELEASE --build-arg BUILD -t $builder_name .
     docker create --name builder $builder_name
     docker cp builder:$builder_path/$app $output
     docker rm -f builder
