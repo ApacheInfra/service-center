@@ -194,7 +194,7 @@ func (d *Distributor) Display(project, app, env string) ([]byte, error) {
 		for _, policy := range policies.Data {
 			item, err := d.transform(policy, kind)
 			if err != nil {
-				return nil, err
+				continue
 			}
 			policyMap[item.Name+kind] = item
 		}
@@ -203,7 +203,7 @@ func (d *Distributor) Display(project, app, env string) ([]byte, error) {
 	for _, item := range list.Data {
 		match, err := d.transform(item, KindMatchGroup)
 		if err != nil {
-			return nil, err
+			continue
 
 		}
 		var policies []*gov.Policy
@@ -239,7 +239,7 @@ func (d *Distributor) List(kind, project, app, env string) ([]byte, error) {
 	for _, item := range list.Data {
 		policy, err := d.transform(item, kind)
 		if err != nil {
-			return nil, err
+			continue
 		}
 		r = append(r, policy)
 	}
