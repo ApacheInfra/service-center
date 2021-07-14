@@ -26,13 +26,12 @@ import (
 
 func FromContext(ctx context.Context) []client.PluginOpOption {
 	opts := make([]client.PluginOpOption, 0, 5)
-	switch {
-	case ctx.Value(util.CtxNocache) == "1":
+	if util.NoCache(ctx) {
 		opts = append(opts, client.WithNoCache())
-	case ctx.Value(util.CtxCacheOnly) == "1":
+	} else if util.CacheOnly(ctx) {
 		opts = append(opts, client.WithCacheOnly())
 	}
-	if ctx.Value(util.CtxGlobal) == "1" {
+	if util.Global(ctx) {
 		opts = append(opts, client.WithGlobal())
 	}
 	return opts

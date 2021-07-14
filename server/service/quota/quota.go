@@ -25,8 +25,7 @@ import (
 )
 
 func ServiceUsage(ctx context.Context, request *discovery.GetServiceCountRequest) (int64, error) {
-	resp, err := datasource.GetMetadataManager().GetServiceCount(ctx,
-		request)
+	resp, err := datasource.GetMetadataManager().GetServiceCount(ctx, request)
 	if err != nil {
 		return 0, err
 	}
@@ -34,8 +33,7 @@ func ServiceUsage(ctx context.Context, request *discovery.GetServiceCountRequest
 }
 
 func InstanceUsage(ctx context.Context, request *discovery.GetServiceCountRequest) (int64, error) {
-	resp, err := datasource.GetMetadataManager().GetInstanceCount(ctx,
-		request)
+	resp, err := datasource.GetMetadataManager().GetInstanceCount(ctx, request)
 	if err != nil {
 		return 0, err
 	}

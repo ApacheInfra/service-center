@@ -100,7 +100,7 @@ func (s *MicroServiceService) Delete(ctx context.Context, in *pb.DeleteServiceRe
 		}, nil
 	}
 
-	return datasource.GetMetadataManager().UnregisterService(ctx, in)
+	return UnregisterService(ctx, in)
 }
 
 func (s *MicroServiceService) DeleteServices(ctx context.Context, request *pb.DelServicesRequest) (*pb.DelServicesResponse, error) {
@@ -183,7 +183,7 @@ func (s *MicroServiceService) getDeleteServiceFunc(ctx context.Context, serviceI
 			ServiceId:  serviceID,
 			ErrMessage: "",
 		}
-		resp, err := datasource.GetMetadataManager().UnregisterService(ctx, &pb.DeleteServiceRequest{
+		resp, err := UnregisterService(ctx, &pb.DeleteServiceRequest{
 			ServiceId: serviceID,
 			Force:     force,
 		})

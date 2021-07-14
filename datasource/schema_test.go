@@ -109,7 +109,7 @@ func TestSchema_Create(t *testing.T) {
 		assert.Equal(t, pb.ErrNotEnoughQuota, resp.Response.GetCode())
 	})
 
-	t.Run("batch create schemas in dev env", func(t *testing.T) {
+	t.Run("modify schemas, should pass", func(t *testing.T) {
 		var (
 			serviceIdDev1 string
 			serviceIdDev2 string
@@ -228,28 +228,13 @@ func TestSchema_Create(t *testing.T) {
 		assert.Equal(t, []string{"second_schemaId_service_ms"}, respGetService.Service.Schemas)
 	})
 
-	t.Run("batch create schemas in production env", func(t *testing.T) {
+	t.Run("when modify schemas and summary is empty", func(t *testing.T) {
 		var (
-			serviceIdPro1 string
-			serviceIdPro2 string
+			serviceIdPro string
 		)
 
 		log.Info("register service")
 		respCreateService, err := datasource.GetMetadataManager().RegisterService(getContext(), &pb.CreateServiceRequest{
-			Service: &pb.MicroService{
-				AppId:       "create_schemas_prod_service_ms",
-				ServiceName: "create_schemas_service_service_ms",
-				Version:     "1.0.0",
-				Level:       "FRONT",
-				Status:      pb.MS_UP,
-				Environment: pb.ENV_PROD,
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respCreateService.Response.GetCode())
-		serviceIdPro1 = respCreateService.ServiceId
-
-		respCreateService, err = datasource.GetMetadataManager().RegisterService(getContext(), &pb.CreateServiceRequest{
 			Service: &pb.MicroService{
 				AppId:       "create_schemas_prod_service_ms",
 				ServiceName: "create_schemas_service_service_ms",
@@ -265,62 +250,11 @@ func TestSchema_Create(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, pb.ResponseSuccess, respCreateService.Response.GetCode())
-		serviceIdPro2 = respCreateService.ServiceId
-
-		log.Info("add schemas to service whose schemaId set is empty")
-		schemas := []*pb.Schema{
-			{
-				SchemaId: "first_schemaId_service_ms",
-				Schema:   "first_schema_service_ms",
-				Summary:  "first0summary_service_ms",
-			},
-			{
-				SchemaId: "first_schemaId_service_ms",
-				Schema:   "first_schema_service_ms",
-				Summary:  "first0summary_service_ms",
-			},
-		}
-		respModifySchemas, err := datasource.GetMetadataManager().ModifySchemas(getContext(), &pb.ModifySchemasRequest{
-			ServiceId: serviceIdPro1,
-			Schemas:   schemas,
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchemas.Response.GetCode())
-		respGetService, err := datasource.GetMetadataManager().GetService(getContext(), &pb.GetServiceRequest{
-			ServiceId: serviceIdPro1,
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respGetService.Response.GetCode())
-		assert.Equal(t, []string{"first_schemaId_service_ms"}, respGetService.Service.Schemas)
-
-		// todo: finish ut after implementing GetAllSchemaInfo, refer to schema_test.go line. 496
-
-		log.Info("modify schemas content already exists, will skip more exist schema")
-		respModifySchemas, err = datasource.GetMetadataManager().ModifySchemas(getContext(), &pb.ModifySchemasRequest{
-			ServiceId: serviceIdPro1,
-			Schemas:   schemas,
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchemas.Response.GetCode())
-
-		log.Info("add schemas, non-exist schemaId")
-		schemas = []*pb.Schema{
-			{
-				SchemaId: "second_schemaId_service_ms",
-				Schema:   "second_schema_service_ms",
-				Summary:  "second0summary_service_ms",
-			},
-		}
-		respModifySchemas, err = datasource.GetMetadataManager().ModifySchemas(getContext(), &pb.ModifySchemasRequest{
-			ServiceId: serviceIdPro1,
-			Schemas:   schemas,
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ErrUndefinedSchemaID, respModifySchemas.Response.GetCode())
+		serviceIdPro = respCreateService.ServiceId
 
 		log.Info("add schema when summary is empty")
 		respModifySchema, err := datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro2,
+			ServiceId: serviceIdPro,
 			SchemaId:  "first_schemaId_service_ms",
 			Schema:    "first_schema_service_ms",
 		})
@@ -328,36 +262,36 @@ func TestSchema_Create(t *testing.T) {
 		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
 
 		log.Info("add schemas when summary in database is empty")
-		schemas = []*pb.Schema{
+		schemas := []*pb.Schema{
 			{
 				SchemaId: "first_schemaId_service_ms",
 				Schema:   "first_schema_service_ms",
 				Summary:  "first0summary_service_ms",
 			},
 		}
-		respModifySchemas, err = datasource.GetMetadataManager().ModifySchemas(getContext(), &pb.ModifySchemasRequest{
-			ServiceId: serviceIdPro2,
+		respModifySchemas, err := datasource.GetMetadataManager().ModifySchemas(getContext(), &pb.ModifySchemasRequest{
+			ServiceId: serviceIdPro,
 			Schemas:   schemas,
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, pb.ResponseSuccess, respModifySchemas.Response.GetCode())
 		respExist, err := datasource.GetMetadataManager().ExistSchema(getContext(), &pb.GetExistenceRequest{
 			Type:      datasource.ExistTypeSchema,
-			ServiceId: serviceIdPro2,
+			ServiceId: serviceIdPro,
 			SchemaId:  "first_schemaId_service_ms",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, "first0summary_service_ms", respExist.Summary)
 
 		respModifySchemas, err = datasource.GetMetadataManager().ModifySchemas(getContext(), &pb.ModifySchemasRequest{
-			ServiceId: serviceIdPro2,
+			ServiceId: serviceIdPro,
 			Schemas:   schemas,
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, pb.ResponseSuccess, respModifySchemas.Response.GetCode())
 	})
 
-	t.Run("create a schema in dev env", func(t *testing.T) {
+	t.Run("modify one schema, should pass", func(t *testing.T) {
 		var (
 			serviceIdDev1 string
 			serviceIdDev2 string
@@ -438,180 +372,6 @@ func TestSchema_Create(t *testing.T) {
 			ServiceId: serviceIdDev1,
 			SchemaId:  "second_schemaId_service_ms",
 			Schema:    "second_schema_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-	})
-
-	t.Run("create a schema in production env", func(t *testing.T) {
-		var (
-			serviceIdPro1 string
-			serviceIdPro2 string
-		)
-
-		log.Info("register service")
-		respCreateService, err := datasource.GetMetadataManager().RegisterService(getContext(), &pb.CreateServiceRequest{
-			Service: &pb.MicroService{
-				AppId:       "create_schema_prod_service_ms",
-				ServiceName: "create_schema_service_service_ms",
-				Version:     "1.0.0",
-				Level:       "FRONT",
-				Status:      pb.MS_UP,
-				Environment: pb.ENV_PROD,
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respCreateService.Response.GetCode())
-		serviceIdPro1 = respCreateService.ServiceId
-
-		respCreateService, err = datasource.GetMetadataManager().RegisterService(getContext(), &pb.CreateServiceRequest{
-			Service: &pb.MicroService{
-				AppId:       "create_schema_prod_service_ms",
-				ServiceName: "create_schema_service_service_ms",
-				Version:     "1.0.1",
-				Level:       "FRONT",
-				Schemas: []string{
-					"first_schemaId_service_ms",
-					"second_schemaId_service_ms",
-				},
-				Status:      pb.MS_UP,
-				Environment: pb.ENV_PROD,
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respCreateService.Response.GetCode())
-		serviceIdPro2 = respCreateService.ServiceId
-
-		log.Info("create a schema for service whose schemaID is empty")
-		respModifySchema, err := datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("modify schema for the service whose schema summary is empty")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_change_service_ms",
-			Summary:   "first0summary1change_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("modify schema for the service whose schema summary already exist")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_service_ms",
-			Summary:   "first0summary_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.NotEqual(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("add schema")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "second_schemaId_service_ms",
-			Schema:    "second_schema_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.NotEqual(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("modify schema for the service whose schemaId already exist")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro2,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-	})
-
-	t.Run("create a schema in empty env", func(t *testing.T) {
-		var (
-			serviceIdPro1 string
-			serviceIdPro2 string
-		)
-
-		log.Info("register service")
-		respCreateService, err := datasource.GetMetadataManager().RegisterService(getContext(), &pb.CreateServiceRequest{
-			Service: &pb.MicroService{
-				AppId:       "create_schema_empty_service_ms",
-				ServiceName: "create_schema_service_service_ms",
-				Version:     "1.0.0",
-				Level:       "FRONT",
-				Status:      pb.MS_UP,
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respCreateService.Response.GetCode())
-		serviceIdPro1 = respCreateService.ServiceId
-
-		respCreateService, err = datasource.GetMetadataManager().RegisterService(getContext(), &pb.CreateServiceRequest{
-			Service: &pb.MicroService{
-				AppId:       "create_schema_empty_service_ms",
-				ServiceName: "create_schema_service_service_ms",
-				Version:     "1.0.1",
-				Level:       "FRONT",
-				Schemas: []string{
-					"first_schemaId_service_ms",
-					"second_schemaId_service_ms",
-				},
-				Status: pb.MS_UP,
-			},
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respCreateService.Response.GetCode())
-		serviceIdPro2 = respCreateService.ServiceId
-
-		log.Info("create a schema for service whose schemaID is empty")
-		respModifySchema, err := datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("modify schema for the service whose schema summary is empty")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_change_service_ms",
-			Summary:   "first0summary1change_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("modify schema for the service whose schema summary already exist")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_service_ms",
-			Summary:   "first0summary_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.NotEqual(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("add schema")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro1,
-			SchemaId:  "second_schemaId_service_ms",
-			Schema:    "second_schema_service_ms",
-		})
-		assert.NoError(t, err)
-		assert.NotEqual(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
-
-		log.Info("modify schema for the service whose schemaId already exist")
-		respModifySchema, err = datasource.GetMetadataManager().ModifySchema(getContext(), &pb.ModifySchemaRequest{
-			ServiceId: serviceIdPro2,
-			SchemaId:  "first_schemaId_service_ms",
-			Schema:    "first_schema_service_ms",
 		})
 		assert.NoError(t, err)
 		assert.Equal(t, pb.ResponseSuccess, respModifySchema.Response.GetCode())
@@ -1055,14 +815,14 @@ func genLocalDatasource(editable bool) datasource.DataSource {
 	}
 	if t == "etcd" {
 		ds, _ := etcd.NewDataSource(datasource.Options{
-			Kind:           "etcd",
-			SchemaEditable: editable,
+			Kind:              "etcd",
+			SchemaNotEditable: !editable,
 		})
 
 		return ds
 	}
 	ds, _ := mongo.NewDataSource(datasource.Options{
-		SchemaEditable: editable,
+		SchemaNotEditable: !editable,
 	})
 	return ds
 }

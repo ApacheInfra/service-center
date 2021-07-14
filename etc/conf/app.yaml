@@ -137,8 +137,8 @@ registry:
   schema:
     # if want disable Test Schema, SchemaDisable set true
     disable: false
-    # if want disable modification of Schema in production environment, SchemaEditable set false
-    editable: false
+    # if want disable modification of Schema, SchemaNotEditable set true
+    notEditable: false
   # enable to register sc itself when startup
   selfRegister: 1
 

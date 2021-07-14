@@ -29,6 +29,8 @@ import (
 func Initialize() {
 	// initialize configuration
 	config.Init()
+	// init the sc registration
+	InitRegistration()
 	// Register global services
 	RegisterGlobalServices()
 	// Logging

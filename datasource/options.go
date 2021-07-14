@@ -21,9 +21,9 @@ import "time"
 
 //Options contains configuration for plugins
 type Options struct {
-	Kind           Kind
-	SslEnabled     bool
-	SchemaEditable bool
+	Kind              Kind
+	SslEnabled        bool
+	SchemaNotEditable bool
 	// InstanceTTL: the default ttl of instance lease
 	InstanceTTL         int64
 	ReleaseAccountAfter time.Duration

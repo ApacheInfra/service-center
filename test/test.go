@@ -44,7 +44,9 @@ func init() {
 	} else {
 		archaius.Set("registry.heartbeat.kind", "checker")
 	}
-	datasource.Init(datasource.Options{Kind: datasource.Kind(t.(string)),
-		ReleaseAccountAfter: 3 * time.Second})
+	datasource.Init(datasource.Options{
+		Kind:                datasource.Kind(t.(string)),
+		ReleaseAccountAfter: 3 * time.Second,
+	})
 	core.ServiceAPI = disco.AssembleResources()
 }

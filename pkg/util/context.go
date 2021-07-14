@@ -197,12 +197,24 @@ func WithNoCache(ctx context.Context) context.Context {
 	return SetContext(ctx, CtxNocache, "1")
 }
 
+func NoCache(ctx context.Context) bool {
+	return ctx.Value(CtxNocache) == "1"
+}
+
 func WithCacheOnly(ctx context.Context) context.Context {
 	return SetContext(ctx, CtxCacheOnly, "1")
 }
 
+func CacheOnly(ctx context.Context) bool {
+	return ctx.Value(CtxCacheOnly) == "1"
+}
+
 func WithGlobal(ctx context.Context) context.Context {
 	return SetContext(ctx, CtxGlobal, "1")
+}
+
+func Global(ctx context.Context) bool {
+	return ctx.Value(CtxGlobal) == "1"
 }
 
 func WithRequestRev(ctx context.Context, rev string) context.Context {

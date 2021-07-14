@@ -30,6 +30,7 @@ import (
 	"github.com/apache/servicecomb-service-center/datasource/etcd/sd"
 	"github.com/apache/servicecomb-service-center/pkg/log"
 	"github.com/apache/servicecomb-service-center/pkg/util"
+	"github.com/apache/servicecomb-service-center/server/config"
 	"github.com/apache/servicecomb-service-center/server/plugin/quota"
 	pb "github.com/go-chassis/cari/discovery"
 )
@@ -281,4 +282,73 @@ func GetOneDomainProjectInstanceCount(ctx context.Context, domainProject string)
 		return 0, err
 	}
 	return resp.Count, nil
+}
+
+func GetGlobalInstanceCount(ctx context.Context) (int64, error) {
+	serviceIDs, err := GetGlobalServiceIDs(ctx)
+	if err != nil {
+		return 0, err
+	}
+	var count int64
+	for _, serviceID := range serviceIDs {
+		n, err := GetInstanceCountOfOneService(ctx, datasource.RegistryDomainProject, serviceID)
+		if err != nil {
+			return 0, err
+		}
+		count += n
+	}
+	return count, nil
+}
+
+func GetGlobalServiceIDs(ctx context.Context) ([]string, error) {
+	var serviceIDs []string
+	for name := range datasource.GlobalServiceNames {
+		key := path.GenerateServiceIndexKey(&pb.MicroServiceKey{
+			Tenant:      datasource.RegistryDomainProject,
+			Environment: getGlobalEnvironment(),
+			AppId:       datasource.RegistryAppID,
+			ServiceName: name,
+		})
+		opts := append(FromContext(ctx),
+			client.WithStrKey(key),
+			client.WithPrefix())
+		resp, err := kv.Store().ServiceIndex().Search(ctx, opts...)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range resp.Kvs {
+			serviceIDs = append(serviceIDs, id.Value.(string))
+		}
+	}
+	return serviceIDs, nil
+}
+
+func GetGlobalServiceCount(ctx context.Context) (int64, error) {
+	var count int64
+	for name := range datasource.GlobalServiceNames {
+		key := path.GenerateServiceIndexKey(&pb.MicroServiceKey{
+			Tenant:      datasource.RegistryDomainProject,
+			Environment: getGlobalEnvironment(),
+			AppId:       datasource.RegistryAppID,
+			ServiceName: name,
+		})
+		opts := append(FromContext(ctx),
+			client.WithStrKey(key),
+			client.WithCountOnly(),
+			client.WithPrefix())
+		resp, err := kv.Store().ServiceIndex().Search(ctx, opts...)
+		if err != nil {
+			return 0, err
+		}
+		count += resp.Count
+	}
+	return count, nil
+}
+
+func getGlobalEnvironment() string {
+	env := pb.ENV_PROD
+	if config.GetProfile().IsDev() {
+		env = pb.ENV_DEV
+	}
+	return env
 }

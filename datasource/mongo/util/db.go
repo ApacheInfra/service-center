@@ -134,6 +134,12 @@ func In(data interface{}) Option {
 	}
 }
 
+func NotIn(data interface{}) Option {
+	return func(filter bson.M) {
+		filter["$nin"] = data
+	}
+}
+
 func Set(data interface{}) Option {
 	return func(filter bson.M) {
 		filter["$set"] = data
@@ -201,7 +207,8 @@ func InstanceInstanceID(instanceID string) Option {
 	}
 }
 
-func ServiceServiceID(serviceID string) Option {
+// ServiceServiceID serviceID can be string or bson.M
+func ServiceServiceID(serviceID interface{}) Option {
 	return func(filter bson.M) {
 		filter[ConnectWithDot([]string{model.ColumnService, model.ColumnServiceID})] = serviceID
 	}
@@ -398,4 +405,23 @@ func NotGlobal() Option {
 		ServiceAppID(datasource.RegistryAppID),
 		ServiceServiceName(inFilter),
 	)
+}
+
+func Global() Option {
+	var names []string
+	for name := range datasource.GlobalServiceNames {
+		names = append(names, name)
+	}
+	inFilter := NewFilter(In(names))
+	options := []Option{
+		Domain(datasource.RegistryDomain),
+		Project(datasource.RegistryProject),
+		ServiceAppID(datasource.RegistryAppID),
+		ServiceServiceName(inFilter),
+	}
+	return func(filter bson.M) {
+		for _, option := range options {
+			option(filter)
+		}
+	}
 }

@@ -167,8 +167,8 @@ func preProcessRegisterInstance(ctx context.Context, instance *pb.MicroServiceIn
 	instance.ModTimestamp = instance.Timestamp
 
 	// 这里应该根据租约计时
-	renewalInterval := core.RegistryDefaultLeaseRenewalinterval
-	retryTimes := core.RegistryDefaultLeaseRetrytimes
+	renewalInterval := core.RegistryDefaultLeaseRenewalInterval
+	retryTimes := core.RegistryDefaultLeaseRetryTimes
 	if instance.HealthCheck == nil {
 		instance.HealthCheck = &pb.HealthCheck{
 			Mode:     pb.CHECK_BY_HEARTBEAT,

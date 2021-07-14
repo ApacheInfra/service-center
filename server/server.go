@@ -119,7 +119,7 @@ func (s *ServiceCenterServer) initDatasource() {
 		Kind:                kind,
 		SslEnabled:          config.GetSSL().SslEnabled,
 		InstanceTTL:         config.GetRegistry().InstanceTTL,
-		SchemaEditable:      config.GetRegistry().SchemaEditable,
+		SchemaNotEditable:   config.GetRegistry().SchemaNotEditable,
 		ReleaseAccountAfter: d,
 	}); err != nil {
 		log.Fatal("init datasource failed", err)

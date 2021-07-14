@@ -31,25 +31,21 @@ import (
 
 var (
 	ServiceAPI proto.ServiceCtrlServer
-	Service    *discovery.MicroService
-	Instance   *discovery.MicroServiceInstance
+	Service    = &discovery.MicroService{}
+	Instance   = &discovery.MicroServiceInstance{}
 )
 
 const (
 	RegistryServiceName  = "SERVICECENTER"
 	RegistryServiceAlias = "SERVICECENTER"
 
-	RegistryDefaultLeaseRenewalinterval int32 = 30
-	RegistryDefaultLeaseRetrytimes      int32 = 3
+	RegistryDefaultLeaseRenewalInterval int32 = 30
+	RegistryDefaultLeaseRetryTimes      int32 = 3
 
 	CtxScSelf util.CtxKey = "_sc_self"
 )
 
-func init() {
-	prepareSelfRegistration()
-}
-
-func prepareSelfRegistration() {
+func InitRegistration() {
 	Service = &discovery.MicroService{
 		Environment: discovery.ENV_PROD,
 		AppId:       datasource.RegistryAppID,
@@ -74,8 +70,8 @@ func prepareSelfRegistration() {
 		Status: discovery.MSI_UP,
 		HealthCheck: &discovery.HealthCheck{
 			Mode:     discovery.CHECK_BY_HEARTBEAT,
-			Interval: RegistryDefaultLeaseRenewalinterval,
-			Times:    RegistryDefaultLeaseRetrytimes,
+			Interval: RegistryDefaultLeaseRenewalInterval,
+			Times:    RegistryDefaultLeaseRetryTimes,
 		},
 	}
 }

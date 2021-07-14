@@ -24,8 +24,12 @@ import (
 	pb "github.com/go-chassis/cari/discovery"
 )
 
-var ErrServiceNotExists = errors.New("service does not exist")
-var ErrInstanceNotExists = errors.New("instance does not exist")
+var (
+	ErrServiceNotExists     = errors.New("service does not exist")
+	ErrInstanceNotExists    = errors.New("instance does not exist")
+	ErrUndefinedSchemaID    = errors.New("non-existent schemaID can't be added request")
+	ErrModifySchemaNotAllow = errors.New("schema already exist, can not be changed request")
+)
 
 const (
 	ExistTypeMicroservice = "microservice"

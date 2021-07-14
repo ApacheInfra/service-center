@@ -110,6 +110,9 @@ func transCacheToRules(cacheRules []interface{}) ([]*model.Rule, bool) {
 }
 
 func GetServiceByID(ctx context.Context, serviceID string) (*model.Service, bool) {
+	if util.NoCache(ctx) {
+		return nil, false
+	}
 	cacheIndex := strings.Join([]string{util.ParseDomain(ctx), util.ParseProject(ctx), serviceID}, "/")
 	cacheRes := sd.Store().Service().Cache().GetValue(cacheIndex)
 	res, ok := transCacheToService(cacheRes)
@@ -120,6 +123,9 @@ func GetServiceByID(ctx context.Context, serviceID string) (*model.Service, bool
 }
 
 func GetServiceID(ctx context.Context, key *discovery.MicroServiceKey) (serviceID string, exist bool) {
+	if util.NoCache(ctx) {
+		return
+	}
 	cacheIndex := strings.Join([]string{util.ParseDomain(ctx), util.ParseProject(ctx), key.AppId, key.ServiceName, key.Version}, "/")
 	res := sd.Store().Service().Cache().GetValue(cacheIndex)
 	cacheService, ok := transCacheToService(res)

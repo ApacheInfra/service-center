@@ -101,7 +101,7 @@ func NewDataSource(opts datasource.Options) (datasource.DataSource, error) {
 	inst.accountManager = &AccountManager{}
 	inst.accountLockManager = NewAccountLockManager(opts.ReleaseAccountAfter)
 	inst.roleManager = &RoleManager{}
-	inst.metadataManager = newMetadataManager(opts.SchemaEditable, opts.InstanceTTL)
+	inst.metadataManager = newMetadataManager(opts.SchemaNotEditable, opts.InstanceTTL)
 	inst.sysManager = newSysManager()
 	inst.depManager = &DepManager{}
 	inst.scManager = &SCManager{}

@@ -30,13 +30,13 @@ func init() {
 
 func TestPrepareSelfRegistration(t *testing.T) {
 	config.Server.Environment = "dev"
-	prepareSelfRegistration()
+	InitRegistration()
 	if Service == nil || Service.Environment != "development" {
 		t.Fatalf("TestPrepareSelfRegistration faild, %v", Service)
 	}
 
 	config.Server.Environment = "prod"
-	prepareSelfRegistration()
+	InitRegistration()
 	if Service == nil || Service.AppId != "default" || Service.ServiceName != "SERVICECENTER" ||
 		Service.Environment != "production" || Service.Properties["allowCrossApp"] != "true" {
 		t.Fatalf("TestPrepareSelfRegistration faild, %v", Service)

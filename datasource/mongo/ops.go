@@ -23,6 +23,7 @@ import (
 	"github.com/apache/servicecomb-service-center/datasource/mongo/client/dao"
 	mutil "github.com/apache/servicecomb-service-center/datasource/mongo/util"
 	pb "github.com/go-chassis/cari/discovery"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (ds *MetadataManager) GetServiceCount(ctx context.Context, request *pb.GetServiceCountRequest) (
@@ -43,10 +44,15 @@ func (ds *MetadataManager) GetServiceCount(ctx context.Context, request *pb.GetS
 
 func (ds *MetadataManager) GetInstanceCount(ctx context.Context, request *pb.GetServiceCountRequest) (
 	*pb.GetServiceCountResponse, error) {
+	inFilter, err := ds.getNotGlobalServiceFilter(ctx)
+	if err != nil {
+		return nil, err
+	}
 	options := []mutil.Option{mutil.Domain(request.Domain)}
 	if request.Project != "" {
 		options = append(options, mutil.Project(request.Project))
 	}
+	options = append(options, mutil.InstanceServiceID(inFilter))
 	count, err := dao.CountInstance(ctx, mutil.NewFilter(options...))
 	if err != nil {
 		return nil, err
@@ -55,4 +61,16 @@ func (ds *MetadataManager) GetInstanceCount(ctx context.Context, request *pb.Get
 		Response: pb.CreateResponse(pb.ResponseSuccess, "Get instance count by domain/project successfully"),
 		Count:    count,
 	}, nil
+}
+
+func (ds *MetadataManager) getNotGlobalServiceFilter(ctx context.Context) (bson.M, error) {
+	serviceIDs := make([]string, 0)
+	services, err := dao.GetServices(ctx, mutil.NewFilter(mutil.Global()))
+	if err != nil {
+		return nil, err
+	}
+	for _, service := range services {
+		serviceIDs = append(serviceIDs, service.Service.ServiceId)
+	}
+	return mutil.NewFilter(mutil.NotIn(serviceIDs)), nil
 }
